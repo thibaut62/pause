@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculateur de Fin de Pause</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 400px;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .instructions {
+            font-size: 16px;
+            margin-bottom: 15px;
+            color: #555;
+        }
+        .input-group {
+            margin-bottom: 20px;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        .time-picker {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+        .time-column {
+            width: 45%;
+            text-align: center;
+        }
+        .time-separator {
+            font-size: 36px;
+            display: flex;
+            align-items: center;
+        }
+        .time-select {
+            width: 100%;
+            padding: 10px;
+            font-size: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: white;
+            appearance: menulist;
+            text-align: center;
+            cursor: pointer;
+        }
+        .time-label {
+            margin-bottom: 5px;
+            color: #666;
+            font-size: 14px;
+        }
+        .current-time {
+            text-align: right;
+            font-size: 14px;
+            color: #777;
+            margin-bottom: 10px;
+        }
+        button {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-bottom: 15px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        button.notification-btn {
+            background-color: #5C6BC0;
+        }
+        button.notification-btn:hover {
+            background-color: #3F51B5;
+        }
+        .result-box {
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .result {
+            font-size: 18px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        .notification-time {
+            font-size: 16px;
+            color: #666;
+            text-align: center;
+        }
+        .popup {
+            display: none;
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .popup-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            width: 80%;
+            max-width: 350px;
+        }
+        .popup-title {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .popup-message {
+            margin-bottom: 15px;
+        }
+        .popup-close {
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Calculateur de Fin de Pause</h1>
+        
+        <div class="current-time" id="current-time">Heure actuelle: --:--</div>
+        
+        <div class="instructions">
+            Entrez l'heure de début de pause (HH:MM)
+        </div>
+        
+        <!-- Sélecteur d'heure avec menus déroulants -->
+        <div class="time-picker">
+            <div class="time-column">
+                <div class="time-label">Heure</div>
+                <select class="time-select" id="hour-select"></select>
+            </div>
+            <div class="time-separator">:</div>
+            <div class="time-column">
+                <div class="time-label">Minute</div>
+                <select class="time-select" id="minute-select"></select>
+            </div>
+        </div>
+        
+        <!-- Le champ texte est caché mais conservé pour la logique existante -->
+        <div class="input-group" style="display: none;">
+            <input type="text" placeholder="HH:MM" id="time-input">
+        </div>
+        
+        <button id="calculate-btn">Calculer la fin de pause</button>
+        
+        <div class="result-box">
+            <div class="result" id="result-label">La fin de votre pause sera à: --:--</div>
+            <div class="notification-time" id="notification-label">Notification 7 min avant: --:--</div>
+        </div>
+        
+        <!-- Le bouton de notification a été retiré car les notifications sont maintenant automatiques -->
+    </div>
+    
+    <div class="popup" id="popup">
+        <div class="popup-content">
+            <div class="popup-title" id="popup-title">Titre</div>
+            <div class="popup-message" id="popup-message">Message</div>
+            <div class="popup-close">
+                <button id="popup-close-btn">Fermer</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Elements
+            const currentTimeElement = document.getElementById('current-time');
+            const timeInput = document.getElementById('time-input');
+            const calculateBtn = document.getElementById('calculate-btn');
+            const resultLabel = document.getElementById('result-label');
+            const notificationLabel = document.getElementById('notification-label');
+            const popup = document.getElementById('popup');
+            const popupTitle = document.getElementById('popup-title');
+            const popupMessage = document.getElementById('popup-message');
+            const popupCloseBtn = document.getElementById('popup-close-btn');
+            
+            // Time picker elements
+            const hourSelect = document.getElementById('hour-select');
+            const minuteSelect = document.getElementById('minute-select');
+            
+            // Variables to store times
+            let endTime = null;
+            let notificationTime = null;
+            
+            // Initialize time select options
+            function initializeTimeSelects() {
+                // Add hours (0-23)
+                for (let i = 0; i < 24; i++) {
+                    const option = document.createElement('option');
+                    option.value = i;
+                    option.text = String(i).padStart(2, '0');
+                    hourSelect.appendChild(option);
+                }
+                
+                // Add minutes (0-59)
+                for (let i = 0; i < 60; i++) {
+                    const option = document.createElement('option');
+                    option.value = i;
+                    option.text = String(i).padStart(2, '0');
+                    minuteSelect.appendChild(option);
+                }
+                
+                // Set current time as default
+                const now = new Date();
+                hourSelect.value = now.getHours();
+                minuteSelect.value = now.getMinutes();
+                
+                // Update hidden input
+                updateTimeInput();
+            }
+            
+            // Update hidden input when selects change
+            function updateTimeInput() {
+                const hour = String(hourSelect.value).padStart(2, '0');
+                const minute = String(minuteSelect.value).padStart(2, '0');
+                timeInput.value = `${hour}:${minute}`;
+            }
+            
+            // Event listeners for select changes
+            hourSelect.addEventListener('change', updateTimeInput);
+            minuteSelect.addEventListener('change', updateTimeInput);
+            
+            // Initialize select options
+            initializeTimeSelects();
+            
+            // Update current time
+            function updateCurrentTime() {
+                const now = new Date();
+                const hours = String(now.getHours()).padStart(2, '0');
+                const minutes = String(now.getMinutes()).padStart(2, '0');
+                currentTimeElement.textContent = `Heure actuelle: ${hours}:${minutes}`;
+            }
+            
+            // Update current time every second
+            updateCurrentTime();
+            setInterval(updateCurrentTime, 60000);
+            
+            // Validate time
+            function validateTime(timeText) {
+                if (!timeText.includes(':')) {
+                    return false;
+                }
+                
+                try {
+                    const [hours, minutes] = timeText.split(':').map(Number);
+                    return hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59;
+                } catch {
+                    return false;
+                }
+            }
+            
+            // Show popup
+            function showPopup(title, message) {
+                popupTitle.textContent = title;
+                popupMessage.textContent = message;
+                popup.style.display = 'flex';
+            }
+            
+            // Close popup
+            popupCloseBtn.addEventListener('click', function() {
+                popup.style.display = 'none';
+            });
+            
+            // Set up notification
+            function scheduleNotification() {
+                if (!notificationTime) {
+                    return;
+                }
+                
+                try {
+                    const now = new Date();
+                    const timeUntilNotification = notificationTime - now;
+                    
+                    if (timeUntilNotification <= 0) {
+                        return;
+                    }
+                    
+                    // Check if notifications are supported
+                    if (!("Notification" in window)) {
+                        showPopup('Notifications non supportées', 'Votre navigateur ne prend pas en charge les notifications');
+                        return;
+                    }
+                    
+                    // Request permission
+                    Notification.requestPermission().then(function(permission) {
+                        if (permission === "granted") {
+                            // Schedule notification
+                            setTimeout(function() {
+                                const notification = new Notification('Fin de pause imminente', {
+                                    body: 'Votre pause se termine dans 7 minutes',
+                                    icon: 'https://cdn-icons-png.flaticon.com/512/3589/3589024.png'
+                                });
+                            }, timeUntilNotification);
+                            
+                            showPopup('Notification programmée', 
+                                    `Une notification est programmée pour 7 minutes avant la fin de votre pause`);
+                        } else {
+                            showPopup('Permission requise', 'Veuillez autoriser les notifications pour recevoir l\'alerte 7 minutes avant la fin de votre pause');
+                        }
+                    });
+                } catch (e) {
+                    showPopup('Erreur de notification', `Impossible de programmer la notification: ${e.message}`);
+                }
+            }
+            
+            // Calculate end time
+            calculateBtn.addEventListener('click', function() {
+                const timeText = timeInput.value.trim();
+                
+                // Validate input
+                if (!validateTime(timeText)) {
+                    showPopup('Format d\'heure invalide', 'Veuillez entrer une heure valide au format HH:MM');
+                    return;
+                }
+                
+                try {
+                    // Parse time
+                    const [hours, minutes] = timeText.split(':').map(Number);
+                    const now = new Date();
+                    const startTime = new Date(now);
+                    startTime.setHours(hours, minutes, 0, 0);
+                    
+                    // Calculate end time (40 minutes later)
+                    endTime = new Date(startTime);
+                    endTime.setMinutes(endTime.getMinutes() + 40);
+                    
+                    // Calculate notification time (7 minutes before end)
+                    notificationTime = new Date(startTime);
+                    notificationTime.setMinutes(notificationTime.getMinutes() + 33);
+                    
+                    // Format times
+                    const endTimeFormatted = `${String(endTime.getHours()).padStart(2, '0')}:${String(endTime.getMinutes()).padStart(2, '0')}`;
+                    const notificationTimeFormatted = `${String(notificationTime.getHours()).padStart(2, '0')}:${String(notificationTime.getMinutes()).padStart(2, '0')}`;
+                    const startTimeFormatted = `${String(startTime.getHours()).padStart(2, '0')}:${String(startTime.getMinutes()).padStart(2, '0')}`;
+                    
+                    // Update display
+                    resultLabel.textContent = `La fin de votre pause sera à: ${endTimeFormatted}`;
+                    notificationLabel.textContent = `Notification 7 min avant: ${notificationTimeFormatted}`;
+                    
+                    // Automatically schedule notification
+                    scheduleNotification();
+                    
+                    // Show popup
+                    showPopup('Calcul effectué', 
+                             `Début de pause: ${startTimeFormatted}\nFin de pause: ${endTimeFormatted}`);
+                } catch (e) {
+                    showPopup('Erreur', `Une erreur est survenue: ${e.message}`);
+                }
+            });
+            
+            // Le code pour le bouton de notification a été retiré car les notifications sont maintenant automatiques
+        });
+    </script>
+</body>
+</html>
