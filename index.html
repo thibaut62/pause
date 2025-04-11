@@ -1,21 +1,4 @@
-// Play notification sound
-            function playNotificationSound() {
-                const selectedSound = getSelectedSound();
-                if (selectedSound && sounds[selectedSound]) {
-                    try {
-                        sounds[selectedSound].currentTime = 0;
-                        let playPromise = sounds[selectedSound].play();
-                        
-                        if (playPromise !== undefined) {
-                            playPromise.catch(error => {
-                                console.error("Erreur lors de la lecture du son de notification:", error);
-                            });
-                        }
-                    } catch (err) {
-                        console.error("Erreur lors de la tentative de lecture du son de notification:", err);
-                    }
-                }
-            }<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
@@ -32,8 +15,6 @@
             --border-color: #ddd;
             --primary-color: #4CAF50;
             --primary-hover: #45a049;
-            --secondary-color: #5C6BC0;
-            --secondary-hover: #3F51B5;
             --result-bg: #f9f9f9;
         }
         
@@ -45,8 +26,6 @@
             --border-color: #333;
             --primary-color: #3b9c3f;
             --primary-hover: #2e8732;
-            --secondary-color: #4a5aa0;
-            --secondary-hover: #394785;
             --result-bg: #2a2a2a;
         }
         
@@ -82,21 +61,6 @@
             font-size: 16px;
             margin-bottom: 15px;
             color: var(--text-secondary);
-        }
-        
-        .input-group {
-            margin-bottom: 20px;
-        }
-        
-        input[type="text"] {
-            width: 100%;
-            padding: 12px;
-            font-size: 16px;
-            border: 1px solid var(--border-color);
-            border-radius: 5px;
-            box-sizing: border-box;
-            background-color: var(--container-bg);
-            color: var(--text-color);
         }
         
         .time-picker {
@@ -159,14 +123,6 @@
         
         button:hover {
             background-color: var(--primary-hover);
-        }
-        
-        button.notification-btn {
-            background-color: var(--secondary-color);
-        }
-        
-        button.notification-btn:hover {
-            background-color: var(--secondary-hover);
         }
         
         .result-box {
@@ -244,10 +200,6 @@
             font-size: 18px;
         }
         
-        .sound-settings {
-            display: none; /* Masquer la section sons */
-        }
-        
         .offline-notice {
             position: fixed;
             bottom: 10px;
@@ -288,8 +240,8 @@
         </div>
         
         <!-- Le champ texte est caché mais conservé pour la logique existante -->
-        <div class="input-group" style="display: none;">
-            <input type="text" placeholder="HH:MM" id="time-input">
+        <div style="display: none;">
+            <input type="text" id="time-input">
         </div>
         
         <button id="calculate-btn">Calculer la fin de pause</button>
@@ -316,7 +268,7 @@
     
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Elements
+            // Éléments de l'interface
             const currentTimeElement = document.getElementById('current-time');
             const timeInput = document.getElementById('time-input');
             const calculateBtn = document.getElementById('calculate-btn');
@@ -329,58 +281,27 @@
             const themeSwitch = document.getElementById('theme-switch');
             const offlineNotice = document.getElementById('offline-notice');
             
-            // Time picker elements
+            // Éléments du sélecteur d'heure
             const hourSelect = document.getElementById('hour-select');
             const minuteSelect = document.getElementById('minute-select');
             
-            // Sound elements
-            const soundTestButtons = document.querySelectorAll('.sound-test-btn');
-            const soundOptions = document.querySelectorAll('input[name="notification-sound"]');
-            
-            // Audio elements for notification sounds
-            const sounds = {
-                bell: new Audio('https://assets.mixkit.co/active_storage/sfx/922/922-preview.mp3'),
-                chime: new Audio('https://assets.mixkit.co/active_storage/sfx/1862/1862-preview.mp3'),
-                alert: new Audio('https://assets.mixkit.co/active_storage/sfx/951/951-preview.mp3')
-            };
-            
-            // Preload sounds with user interaction to bypass autoplay restrictions
-            function preloadSounds() {
-                Object.values(sounds).forEach(sound => {
-                    sound.load();
-                    sound.volume = 0.5;
-                    // Create a touch/click event handler to enable sound on mobile
-                    document.addEventListener('touchstart', function() {
-                        sound.play().then(() => {
-                            sound.pause();
-                            sound.currentTime = 0;
-                        }).catch(e => {
-                            // Silently catch error
-                        });
-                    }, { once: true });
-                });
-            }
-            
-            // Call preload with a slight delay
-            setTimeout(preloadSounds, 1000);
-            
-            // Variables to store times
+            // Variables pour stocker les heures
             let endTime = null;
             let notificationTime = null;
             
-            // Initialize theme
+            // Initialiser le thème
             function initTheme() {
                 const savedTheme = localStorage.getItem('theme') || 'light';
                 document.documentElement.setAttribute('data-theme', savedTheme);
                 updateThemeIcon(savedTheme);
             }
             
-            // Update theme icon
+            // Mettre à jour l'icône du thème
             function updateThemeIcon(theme) {
                 themeSwitch.textContent = theme === 'dark' ? '🌙' : '☀️';
             }
             
-            // Toggle theme
+            // Changer de thème
             themeSwitch.addEventListener('click', function() {
                 const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
                 const newTheme = currentTheme === 'light' ? 'dark' : 'light';
@@ -389,9 +310,9 @@
                 updateThemeIcon(newTheme);
             });
             
-            // Initialize time select options
+            // Initialiser les options du sélecteur d'heure
             function initializeTimeSelects() {
-                // Add hours (0-23)
+                // Ajouter les heures (0-23)
                 for (let i = 0; i < 24; i++) {
                     const option = document.createElement('option');
                     option.value = i;
@@ -399,7 +320,7 @@
                     hourSelect.appendChild(option);
                 }
                 
-                // Add minutes (0-59)
+                // Ajouter les minutes (0-59)
                 for (let i = 0; i < 60; i++) {
                     const option = document.createElement('option');
                     option.value = i;
@@ -407,66 +328,23 @@
                     minuteSelect.appendChild(option);
                 }
                 
-                // Set current time as default
+                // Définir l'heure actuelle par défaut
                 const now = new Date();
                 hourSelect.value = now.getHours();
                 minuteSelect.value = now.getMinutes();
                 
-                // Update hidden input
+                // Mettre à jour le champ de saisie caché
                 updateTimeInput();
             }
             
-            // Update hidden input when selects change
+            // Mettre à jour le champ de saisie caché lorsque les sélecteurs changent
             function updateTimeInput() {
                 const hour = String(hourSelect.value).padStart(2, '0');
                 const minute = String(minuteSelect.value).padStart(2, '0');
                 timeInput.value = `${hour}:${minute}`;
             }
             
-            // Test sound
-            soundTestButtons.forEach(button => {
-                button.addEventListener('click', function(e) {
-                    e.preventDefault(); // Empêcher l'action par défaut
-                    const sound = this.getAttribute('data-sound');
-                    if (sounds[sound]) {
-                        // Essayer de jouer le son après une interaction utilisateur
-                        try {
-                            sounds[sound].currentTime = 0;
-                            let playPromise = sounds[sound].play();
-                            
-                            if (playPromise !== undefined) {
-                                playPromise.catch(error => {
-                                    console.error("Erreur lors de la lecture du son:", error);
-                                    showPopup('Erreur de son', 'Impossible de jouer le son. Vérifiez que votre navigateur autorise la lecture automatique.');
-                                });
-                            }
-                        } catch (err) {
-                            console.error("Erreur lors de la tentative de lecture:", err);
-                        }
-                    }
-                });
-            });
-            
-            // Get selected sound
-            function getSelectedSound() {
-                const selectedSound = document.querySelector('input[name="notification-sound"]:checked').value;
-                return selectedSound !== 'none' ? selectedSound : null;
-            }
-            
-            // Save sound preference
-            soundOptions.forEach(option => {
-                option.addEventListener('change', function() {
-                    localStorage.setItem('notificationSound', this.value);
-                });
-            });
-            
-            // Load sound preference
-            function loadSoundPreference() {
-                const savedSound = localStorage.getItem('notificationSound') || 'bell';
-                document.getElementById(`sound-${savedSound}`).checked = true;
-            }
-            
-            // Update current time
+            // Mettre à jour l'heure actuelle
             function updateCurrentTime() {
                 const now = new Date();
                 const hours = String(now.getHours()).padStart(2, '0');
@@ -474,11 +352,11 @@
                 currentTimeElement.textContent = `Heure actuelle: ${hours}:${minutes}`;
             }
             
-            // Update current time every minute
+            // Mettre à jour l'heure actuelle toutes les minutes
             updateCurrentTime();
             setInterval(updateCurrentTime, 60000);
             
-            // Validate time
+            // Valider le format de l'heure
             function validateTime(timeText) {
                 if (!timeText.includes(':')) {
                     return false;
@@ -492,19 +370,19 @@
                 }
             }
             
-            // Show popup
+            // Afficher une popup
             function showPopup(title, message) {
                 popupTitle.textContent = title;
                 popupMessage.textContent = message;
                 popup.style.display = 'flex';
             }
             
-            // Close popup
+            // Fermer la popup
             popupCloseBtn.addEventListener('click', function() {
                 popup.style.display = 'none';
             });
             
-            // Set up notification
+            // Programmer une notification
             function scheduleNotification() {
                 if (!notificationTime) {
                     return;
@@ -518,20 +396,17 @@
                         return;
                     }
                     
-                    // Check if notifications are supported
+                    // Vérifier si les notifications sont prises en charge
                     if (!("Notification" in window)) {
                         showPopup('Notifications non supportées', 'Votre navigateur ne prend pas en charge les notifications');
                         return;
                     }
                     
-                    // Request permission
+                    // Demander la permission
                     Notification.requestPermission().then(function(permission) {
                         if (permission === "granted") {
-                            // Schedule notification
+                            // Programmer la notification
                             setTimeout(function() {
-                                // Play sound if selected
-                                playNotificationSound();
-                                
                                 const notification = new Notification('Fin de pause imminente', {
                                     body: 'Votre pause se termine dans 7 minutes',
                                     icon: 'https://cdn-icons-png.flaticon.com/512/3589/3589024.png'
@@ -549,48 +424,48 @@
                 }
             }
             
-            // Calculate end time
+            // Calculer l'heure de fin
             calculateBtn.addEventListener('click', function() {
                 const timeText = timeInput.value.trim();
                 
-                // Validate input
+                // Valider la saisie
                 if (!validateTime(timeText)) {
                     showPopup('Format d\'heure invalide', 'Veuillez entrer une heure valide au format HH:MM');
                     return;
                 }
                 
                 try {
-                    // Parse time
+                    // Analyser l'heure
                     const [hours, minutes] = timeText.split(':').map(Number);
                     const now = new Date();
                     const startTime = new Date(now);
                     startTime.setHours(hours, minutes, 0, 0);
                     
-                    // Calculate end time (40 minutes later)
+                    // Calculer l'heure de fin (40 minutes plus tard)
                     endTime = new Date(startTime);
                     endTime.setMinutes(endTime.getMinutes() + 40);
                     
-                    // Calculate notification time (7 minutes before end)
+                    // Calculer l'heure de notification (7 minutes avant la fin)
                     notificationTime = new Date(startTime);
                     notificationTime.setMinutes(notificationTime.getMinutes() + 33);
                     
-                    // Format times
+                    // Formater les heures
                     const endTimeFormatted = `${String(endTime.getHours()).padStart(2, '0')}:${String(endTime.getMinutes()).padStart(2, '0')}`;
                     const notificationTimeFormatted = `${String(notificationTime.getHours()).padStart(2, '0')}:${String(notificationTime.getMinutes()).padStart(2, '0')}`;
                     const startTimeFormatted = `${String(startTime.getHours()).padStart(2, '0')}:${String(startTime.getMinutes()).padStart(2, '0')}`;
                     
-                    // Update display
+                    // Mettre à jour l'affichage
                     resultLabel.textContent = `La fin de votre pause sera à: ${endTimeFormatted}`;
                     notificationLabel.textContent = `Notification 7 min avant: ${notificationTimeFormatted}`;
                     
-                    // Automatically schedule notification
+                    // Programmer automatiquement la notification
                     scheduleNotification();
                     
-                    // Show popup
+                    // Afficher la popup
                     showPopup('Calcul effectué', 
                              `Début de pause: ${startTimeFormatted}\nFin de pause: ${endTimeFormatted}`);
                     
-                    // Save to localStorage for offline use
+                    // Sauvegarder dans le localStorage pour une utilisation hors ligne
                     saveCalculationToLocalStorage({
                         startTime: startTimeFormatted,
                         endTime: endTimeFormatted,
@@ -601,12 +476,12 @@
                 }
             });
             
-            // Save calculation to localStorage
+            // Sauvegarder le calcul dans le localStorage
             function saveCalculationToLocalStorage(data) {
                 localStorage.setItem('lastCalculation', JSON.stringify(data));
             }
             
-            // Load calculation from localStorage
+            // Charger le calcul depuis le localStorage
             function loadCalculationFromLocalStorage() {
                 const savedData = localStorage.getItem('lastCalculation');
                 if (savedData) {
@@ -615,12 +490,12 @@
                         resultLabel.textContent = `La fin de votre pause sera à: ${data.endTime}`;
                         notificationLabel.textContent = `Notification 7 min avant: ${data.notificationTime}`;
                     } catch (e) {
-                        console.error('Error loading saved calculation:', e);
+                        console.error('Erreur lors du chargement du calcul sauvegardé:', e);
                     }
                 }
             }
             
-            // Check online status
+            // Vérifier l'état de la connexion
             function checkOnlineStatus() {
                 if (navigator.onLine) {
                     offlineNotice.style.display = 'none';
@@ -629,28 +504,28 @@
                 }
             }
             
-            // Event listeners for the select changes
+            // Écouteurs d'événements pour les changements de sélection
             hourSelect.addEventListener('change', updateTimeInput);
             minuteSelect.addEventListener('change', updateTimeInput);
             
-            // Online/offline event listeners
+            // Écouteurs d'événements pour l'état de la connexion
             window.addEventListener('online', checkOnlineStatus);
             window.addEventListener('offline', checkOnlineStatus);
             
-            // Initialize
+            // Initialisation
             initializeTimeSelects();
             initTheme();
             checkOnlineStatus();
             loadCalculationFromLocalStorage();
             
-            // Service Worker for offline functionality
+            // Service Worker pour la fonctionnalité hors ligne
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.register('sw.js')
                 .then(function(registration) {
-                    console.log('Service Worker registered with scope:', registration.scope);
+                    console.log('Service Worker enregistré avec succès');
                 })
                 .catch(function(error) {
-                    console.log('Service Worker registration failed:', error);
+                    console.log('Échec de l\'enregistrement du Service Worker');
                 });
             }
         });
