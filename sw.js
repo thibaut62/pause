@@ -6,9 +6,6 @@ const filesToCache = [
   '/',
   '/index.html',
   '/manifest.json',
-  'https://assets.mixkit.co/active_storage/sfx/922/922-preview.mp3',
-  'https://assets.mixkit.co/active_storage/sfx/1862/1862-preview.mp3',
-  'https://assets.mixkit.co/active_storage/sfx/951/951-preview.mp3',
   'https://cdn-icons-png.flaticon.com/512/3589/3589024.png'
 ];
 
