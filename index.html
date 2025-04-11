@@ -16,6 +16,7 @@
             --primary-color: #4CAF50;
             --primary-hover: #45a049;
             --result-bg: #f9f9f9;
+            --alert-color: #ff9800;
         }
         
         [data-theme="dark"] {
@@ -27,6 +28,7 @@
             --primary-color: #3b9c3f;
             --primary-hover: #2e8732;
             --result-bg: #2a2a2a;
+            --alert-color: #ff9800;
         }
         
         body {
@@ -145,6 +147,15 @@
             text-align: center;
         }
         
+        .vibration-info {
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 1px dashed var(--border-color);
+            color: var(--alert-color);
+            font-size: 15px;
+            text-align: center;
+        }
+        
         .popup {
             display: none;
             position: fixed;
@@ -200,6 +211,14 @@
             font-size: 18px;
         }
         
+        .test-vibration-btn {
+            background-color: var(--alert-color);
+            margin-top: 5px;
+            margin-bottom: 5px;
+            font-size: 14px;
+            padding: 8px;
+        }
+        
         .offline-notice {
             position: fixed;
             bottom: 10px;
@@ -211,6 +230,53 @@
             border-radius: 20px;
             font-size: 14px;
             display: none;
+        }
+        
+        .vibration-alert {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 152, 0, 0.9);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            font-size: 24px;
+            text-align: center;
+            padding: 20px;
+            box-sizing: border-box;
+            animation: fadeIn 0.5s;
+            display: none;
+        }
+        
+        .vibration-alert-title {
+            font-size: 32px;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+        
+        .vibration-alert-message {
+            margin-bottom: 30px;
+        }
+        
+        .dismiss-btn {
+            background-color: white;
+            color: var(--alert-color);
+            border: none;
+            border-radius: 30px;
+            padding: 15px 30px;
+            font-size: 18px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
     </style>
 </head>
@@ -248,7 +314,11 @@
         
         <div class="result-box">
             <div class="result" id="result-label">La fin de votre pause sera à: --:--</div>
-            <div class="notification-time" id="notification-label">Notification 7 min avant: --:--</div>
+            <div class="notification-time" id="notification-label">Alerte vibration 7 min avant: --:--</div>
+            <div class="vibration-info" id="vibration-status">
+                Votre appareil vibrera 7 minutes avant la fin de pause
+                <button class="test-vibration-btn" id="test-vibration-btn">Tester la vibration</button>
+            </div>
         </div>
     </div>
     
@@ -266,6 +336,12 @@
         </div>
     </div>
     
+    <div class="vibration-alert" id="vibration-alert">
+        <div class="vibration-alert-title">Fin de pause imminente</div>
+        <div class="vibration-alert-message">Votre pause se termine dans 7 minutes</div>
+        <button class="dismiss-btn" id="dismiss-btn">J'ai compris</button>
+    </div>
+    
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Éléments de l'interface
@@ -280,6 +356,10 @@
             const popupCloseBtn = document.getElementById('popup-close-btn');
             const themeSwitch = document.getElementById('theme-switch');
             const offlineNotice = document.getElementById('offline-notice');
+            const testVibrationBtn = document.getElementById('test-vibration-btn');
+            const vibrationStatus = document.getElementById('vibration-status');
+            const vibrationAlert = document.getElementById('vibration-alert');
+            const dismissBtn = document.getElementById('dismiss-btn');
             
             // Éléments du sélecteur d'heure
             const hourSelect = document.getElementById('hour-select');
@@ -288,6 +368,52 @@
             // Variables pour stocker les heures
             let endTime = null;
             let notificationTime = null;
+            let vibrationTimeout = null;
+            
+            // Vérifier si la vibration est prise en charge
+            const vibrationSupported = 'vibrate' in navigator;
+            
+            if (!vibrationSupported) {
+                vibrationStatus.textContent = "⚠️ Votre appareil ne prend pas en charge la vibration";
+                testVibrationBtn.style.display = 'none';
+            }
+            
+            // Tester la vibration
+            testVibrationBtn.addEventListener('click', function() {
+                if (vibrationSupported) {
+                    triggerVibration();
+                    showVibrationAlert();
+                    showPopup('Test de vibration', 'Si votre appareil est configuré correctement, vous devriez sentir une vibration.');
+                } else {
+                    showPopup('Vibration non supportée', 'Votre appareil ne prend pas en charge la vibration.');
+                }
+            });
+            
+            // Déclencher une vibration
+            function triggerVibration() {
+                if (vibrationSupported) {
+                    // Motif de vibration: vibrer 500ms, pause 100ms, vibrer 500ms, pause 100ms, vibrer 1000ms
+                    navigator.vibrate([500, 100, 500, 100, 1000]);
+                }
+            }
+            
+            // Afficher l'alerte de vibration plein écran
+            function showVibrationAlert() {
+                vibrationAlert.style.display = 'flex';
+                
+                // Ajuster la taille pour s'adapter à l'écran mobile
+                vibrationAlert.style.height = window.innerHeight + 'px';
+                
+                // Fermer automatiquement après 5 secondes
+                setTimeout(function() {
+                    vibrationAlert.style.display = 'none';
+                }, 5000);
+            }
+            
+            // Fermer l'alerte de vibration
+            dismissBtn.addEventListener('click', function() {
+                vibrationAlert.style.display = 'none';
+            });
             
             // Initialiser le thème
             function initTheme() {
@@ -382,8 +508,8 @@
                 popup.style.display = 'none';
             });
             
-            // Programmer une notification
-            function scheduleNotification() {
+            // Programmer une alerte par vibration
+            function scheduleVibration() {
                 if (!notificationTime) {
                     return;
                 }
@@ -396,31 +522,25 @@
                         return;
                     }
                     
-                    // Vérifier si les notifications sont prises en charge
-                    if (!("Notification" in window)) {
-                        showPopup('Notifications non supportées', 'Votre navigateur ne prend pas en charge les notifications');
-                        return;
+                    // Annuler toute vibration programmée précédemment
+                    if (vibrationTimeout) {
+                        clearTimeout(vibrationTimeout);
                     }
                     
-                    // Demander la permission
-                    Notification.requestPermission().then(function(permission) {
-                        if (permission === "granted") {
-                            // Programmer la notification
-                            setTimeout(function() {
-                                const notification = new Notification('Fin de pause imminente', {
-                                    body: 'Votre pause se termine dans 7 minutes',
-                                    icon: 'https://cdn-icons-png.flaticon.com/512/3589/3589024.png'
-                                });
-                            }, timeUntilNotification);
-                            
-                            showPopup('Notification programmée', 
-                                    `Une notification est programmée pour 7 minutes avant la fin de votre pause`);
-                        } else {
-                            showPopup('Permission requise', 'Veuillez autoriser les notifications pour recevoir l\'alerte 7 minutes avant la fin de votre pause');
-                        }
-                    });
+                    // Programmer la vibration
+                    vibrationTimeout = setTimeout(function() {
+                        // Déclencher la vibration
+                        triggerVibration();
+                        
+                        // Afficher l'alerte visuelle
+                        showVibrationAlert();
+                        
+                    }, timeUntilNotification);
+                    
+                    showPopup('Alerte programmée', 
+                            `Une alerte par vibration est programmée pour 7 minutes avant la fin de votre pause`);
                 } catch (e) {
-                    showPopup('Erreur de notification', `Impossible de programmer la notification: ${e.message}`);
+                    showPopup('Erreur', `Impossible de programmer l'alerte: ${e.message}`);
                 }
             }
             
@@ -456,10 +576,14 @@
                     
                     // Mettre à jour l'affichage
                     resultLabel.textContent = `La fin de votre pause sera à: ${endTimeFormatted}`;
-                    notificationLabel.textContent = `Notification 7 min avant: ${notificationTimeFormatted}`;
+                    notificationLabel.textContent = `Alerte vibration 7 min avant: ${notificationTimeFormatted}`;
                     
-                    // Programmer automatiquement la notification
-                    scheduleNotification();
+                    // Programmer automatiquement la vibration
+                    if (vibrationSupported) {
+                        scheduleVibration();
+                    } else {
+                        showPopup('Vibration non supportée', 'Votre appareil ne prend pas en charge la vibration. Veuillez garder l\'application ouverte pour voir l\'alerte visuelle.');
+                    }
                     
                     // Afficher la popup
                     showPopup('Calcul effectué', 
@@ -488,7 +612,7 @@
                     try {
                         const data = JSON.parse(savedData);
                         resultLabel.textContent = `La fin de votre pause sera à: ${data.endTime}`;
-                        notificationLabel.textContent = `Notification 7 min avant: ${data.notificationTime}`;
+                        notificationLabel.textContent = `Alerte vibration 7 min avant: ${data.notificationTime}`;
                     } catch (e) {
                         console.error('Erreur lors du chargement du calcul sauvegardé:', e);
                     }
@@ -526,6 +650,31 @@
                 })
                 .catch(function(error) {
                     console.log('Échec de l\'enregistrement du Service Worker');
+                });
+            }
+            
+            // Empêcher l'appareil de se mettre en veille
+            if ('wakeLock' in navigator) {
+                let wakeLock = null;
+                
+                const requestWakeLock = async () => {
+                    try {
+                        wakeLock = await navigator.wakeLock.request('screen');
+                    } catch (err) {
+                        console.log(`Impossible d'empêcher la mise en veille: ${err.message}`);
+                    }
+                };
+                
+                // Demander le wakeLock au premier clic sur le bouton de calcul
+                calculateBtn.addEventListener('click', function() {
+                    requestWakeLock();
+                }, { once: true });
+                
+                // Renouveler le wakeLock quand le document redevient visible
+                document.addEventListener('visibilitychange', async () => {
+                    if (wakeLock !== null && document.visibilityState === 'visible') {
+                        requestWakeLock();
+                    }
                 });
             }
         });
