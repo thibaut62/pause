@@ -1,4 +1,21 @@
-<!DOCTYPE html>
+// Play notification sound
+            function playNotificationSound() {
+                const selectedSound = getSelectedSound();
+                if (selectedSound && sounds[selectedSound]) {
+                    try {
+                        sounds[selectedSound].currentTime = 0;
+                        let playPromise = sounds[selectedSound].play();
+                        
+                        if (playPromise !== undefined) {
+                            playPromise.catch(error => {
+                                console.error("Erreur lors de la lecture du son de notification:", error);
+                            });
+                        }
+                    } catch (err) {
+                        console.error("Erreur lors de la tentative de lecture du son de notification:", err);
+                    }
+                }
+            }<!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
@@ -379,16 +396,30 @@
             
             // Audio elements for notification sounds
             const sounds = {
-                bell: new Audio('https://cdn.pixabay.com/download/audio/2021/08/04/audio_c518b68e5d.mp3?filename=notification-sound-7062.mp3'),
-                chime: new Audio('https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c2b4d95a.mp3?filename=phone-ringing-153844.mp3'),
-                alert: new Audio('https://cdn.pixabay.com/download/audio/2022/11/17/audio_78bb4011fa.mp3?filename=interface-124464.mp3')
+                bell: new Audio('https://assets.mixkit.co/active_storage/sfx/922/922-preview.mp3'),
+                chime: new Audio('https://assets.mixkit.co/active_storage/sfx/1862/1862-preview.mp3'),
+                alert: new Audio('https://assets.mixkit.co/active_storage/sfx/951/951-preview.mp3')
             };
             
-            // Preload sounds
-            Object.values(sounds).forEach(sound => {
-                sound.load();
-                sound.volume = 0.5;
-            });
+            // Preload sounds with user interaction to bypass autoplay restrictions
+            function preloadSounds() {
+                Object.values(sounds).forEach(sound => {
+                    sound.load();
+                    sound.volume = 0.5;
+                    // Create a touch/click event handler to enable sound on mobile
+                    document.addEventListener('touchstart', function() {
+                        sound.play().then(() => {
+                            sound.pause();
+                            sound.currentTime = 0;
+                        }).catch(e => {
+                            // Silently catch error
+                        });
+                    }, { once: true });
+                });
+            }
+            
+            // Call preload with a slight delay
+            setTimeout(preloadSounds, 1000);
             
             // Variables to store times
             let endTime = null;
@@ -451,11 +482,24 @@
             
             // Test sound
             soundTestButtons.forEach(button => {
-                button.addEventListener('click', function() {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault(); // Empêcher l'action par défaut
                     const sound = this.getAttribute('data-sound');
                     if (sounds[sound]) {
-                        sounds[sound].currentTime = 0;
-                        sounds[sound].play();
+                        // Essayer de jouer le son après une interaction utilisateur
+                        try {
+                            sounds[sound].currentTime = 0;
+                            let playPromise = sounds[sound].play();
+                            
+                            if (playPromise !== undefined) {
+                                playPromise.catch(error => {
+                                    console.error("Erreur lors de la lecture du son:", error);
+                                    showPopup('Erreur de son', 'Impossible de jouer le son. Vérifiez que votre navigateur autorise la lecture automatique.');
+                                });
+                            }
+                        } catch (err) {
+                            console.error("Erreur lors de la tentative de lecture:", err);
+                        }
                     }
                 });
             });
@@ -543,10 +587,7 @@
                             // Schedule notification
                             setTimeout(function() {
                                 // Play sound if selected
-                                const selectedSound = getSelectedSound();
-                                if (selectedSound && sounds[selectedSound]) {
-                                    sounds[selectedSound].play();
-                                }
+                                playNotificationSound();
                                 
                                 const notification = new Notification('Fin de pause imminente', {
                                     body: 'Votre pause se termine dans 7 minutes',

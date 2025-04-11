@@ -6,9 +6,9 @@ const filesToCache = [
   '/',
   '/index.html',
   '/manifest.json',
-  'https://cdn.pixabay.com/download/audio/2021/08/04/audio_c518b68e5d.mp3?filename=notification-sound-7062.mp3',
-  'https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c2b4d95a.mp3?filename=phone-ringing-153844.mp3',
-  'https://cdn.pixabay.com/download/audio/2022/11/17/audio_78bb4011fa.mp3?filename=interface-124464.mp3',
+  'https://assets.mixkit.co/active_storage/sfx/922/922-preview.mp3',
+  'https://assets.mixkit.co/active_storage/sfx/1862/1862-preview.mp3',
+  'https://assets.mixkit.co/active_storage/sfx/951/951-preview.mp3',
   'https://cdn-icons-png.flaticon.com/512/3589/3589024.png'
 ];
 
