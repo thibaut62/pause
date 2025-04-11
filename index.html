@@ -4,88 +4,133 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calculateur de Fin de Pause</title>
+    <meta name="theme-color" content="#4CAF50">
+    <link rel="manifest" href="manifest.json">
     <style>
+        :root {
+            --bg-color: #f5f5f5;
+            --container-bg: white;
+            --text-color: #333;
+            --text-secondary: #555;
+            --border-color: #ddd;
+            --primary-color: #4CAF50;
+            --primary-hover: #45a049;
+            --secondary-color: #5C6BC0;
+            --secondary-hover: #3F51B5;
+            --result-bg: #f9f9f9;
+        }
+        
+        [data-theme="dark"] {
+            --bg-color: #121212;
+            --container-bg: #1e1e1e;
+            --text-color: #e0e0e0;
+            --text-secondary: #b0b0b0;
+            --border-color: #333;
+            --primary-color: #3b9c3f;
+            --primary-hover: #2e8732;
+            --secondary-color: #4a5aa0;
+            --secondary-hover: #394785;
+            --result-bg: #2a2a2a;
+        }
+        
         body {
             font-family: 'Arial', sans-serif;
-            background-color: #f5f5f5;
+            background-color: var(--bg-color);
             margin: 0;
             padding: 0;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
+            color: var(--text-color);
+            transition: background-color 0.3s ease;
         }
+        
         .container {
-            background-color: white;
+            background-color: var(--container-bg);
             border-radius: 10px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
             width: 90%;
             max-width: 400px;
             padding: 20px;
         }
+        
         h1 {
             text-align: center;
-            color: #333;
+            color: var(--text-color);
             margin-bottom: 20px;
         }
+        
         .instructions {
             font-size: 16px;
             margin-bottom: 15px;
-            color: #555;
+            color: var(--text-secondary);
         }
+        
         .input-group {
             margin-bottom: 20px;
         }
+        
         input[type="text"] {
             width: 100%;
             padding: 12px;
             font-size: 16px;
-            border: 1px solid #ddd;
+            border: 1px solid var(--border-color);
             border-radius: 5px;
             box-sizing: border-box;
+            background-color: var(--container-bg);
+            color: var(--text-color);
         }
+        
         .time-picker {
             display: flex;
             justify-content: space-between;
             margin-bottom: 20px;
             align-items: center;
         }
+        
         .time-column {
             width: 45%;
             text-align: center;
         }
+        
         .time-separator {
             font-size: 36px;
             display: flex;
             align-items: center;
         }
+        
         .time-select {
             width: 100%;
             padding: 10px;
             font-size: 20px;
-            border: 1px solid #ddd;
+            border: 1px solid var(--border-color);
             border-radius: 5px;
-            background-color: white;
+            background-color: var(--container-bg);
             appearance: menulist;
             text-align: center;
             cursor: pointer;
+            color: var(--text-color);
         }
+        
         .time-label {
             margin-bottom: 5px;
-            color: #666;
+            color: var(--text-secondary);
             font-size: 14px;
         }
+        
         .current-time {
             text-align: right;
             font-size: 14px;
-            color: #777;
+            color: var(--text-secondary);
             margin-bottom: 10px;
         }
+        
         button {
             display: block;
             width: 100%;
             padding: 12px;
-            background-color: #4CAF50;
+            background-color: var(--primary-color);
             color: white;
             border: none;
             border-radius: 5px;
@@ -94,31 +139,39 @@
             margin-bottom: 15px;
             transition: background-color 0.3s;
         }
+        
         button:hover {
-            background-color: #45a049;
+            background-color: var(--primary-hover);
         }
+        
         button.notification-btn {
-            background-color: #5C6BC0;
+            background-color: var(--secondary-color);
         }
+        
         button.notification-btn:hover {
-            background-color: #3F51B5;
+            background-color: var(--secondary-hover);
         }
+        
         .result-box {
-            background-color: #f9f9f9;
+            background-color: var(--result-bg);
             border-radius: 5px;
             padding: 15px;
             margin-bottom: 20px;
         }
+        
         .result {
             font-size: 18px;
             margin-bottom: 10px;
             text-align: center;
+            color: var(--text-color);
         }
+        
         .notification-time {
             font-size: 16px;
-            color: #666;
+            color: var(--text-secondary);
             text-align: center;
         }
+        
         .popup {
             display: none;
             position: fixed;
@@ -131,27 +184,103 @@
             justify-content: center;
             align-items: center;
         }
+        
         .popup-content {
-            background-color: white;
+            background-color: var(--container-bg);
             padding: 20px;
             border-radius: 10px;
             width: 80%;
             max-width: 350px;
+            color: var(--text-color);
         }
+        
         .popup-title {
             font-size: 18px;
-            color: #333;
+            color: var(--text-color);
             margin-bottom: 10px;
         }
+        
         .popup-message {
             margin-bottom: 15px;
+            color: var(--text-secondary);
         }
+        
         .popup-close {
             text-align: right;
+        }
+        
+        .theme-switch {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background-color: var(--container-bg);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            border: none;
+            color: var(--text-color);
+            font-size: 18px;
+        }
+        
+        .sound-settings {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .sound-title {
+            font-size: 16px;
+            margin-bottom: 10px;
+            color: var(--text-color);
+        }
+        
+        .sound-option {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .sound-option input[type="radio"] {
+            margin-right: 10px;
+        }
+        
+        .sound-option label {
+            color: var(--text-secondary);
+        }
+        
+        .sound-test-btn {
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 10px;
+            margin-left: 10px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .offline-notice {
+            position: fixed;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: var(--primary-color);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            display: none;
         }
     </style>
 </head>
 <body>
+    <button class="theme-switch" id="theme-switch">☀️</button>
+    
     <div class="container">
         <h1>Calculateur de Fin de Pause</h1>
         
@@ -186,7 +315,33 @@
             <div class="notification-time" id="notification-label">Notification 7 min avant: --:--</div>
         </div>
         
-        <!-- Le bouton de notification a été retiré car les notifications sont maintenant automatiques -->
+        <!-- Section de configuration des sons de notification -->
+        <div class="sound-settings">
+            <div class="sound-title">Son de notification:</div>
+            <div class="sound-option">
+                <input type="radio" id="sound-bell" name="notification-sound" value="bell" checked>
+                <label for="sound-bell">Sonnerie</label>
+                <button class="sound-test-btn" data-sound="bell">Tester</button>
+            </div>
+            <div class="sound-option">
+                <input type="radio" id="sound-chime" name="notification-sound" value="chime">
+                <label for="sound-chime">Carillon</label>
+                <button class="sound-test-btn" data-sound="chime">Tester</button>
+            </div>
+            <div class="sound-option">
+                <input type="radio" id="sound-alert" name="notification-sound" value="alert">
+                <label for="sound-alert">Alerte</label>
+                <button class="sound-test-btn" data-sound="alert">Tester</button>
+            </div>
+            <div class="sound-option">
+                <input type="radio" id="sound-none" name="notification-sound" value="none">
+                <label for="sound-none">Aucun son</label>
+            </div>
+        </div>
+    </div>
+    
+    <div class="offline-notice" id="offline-notice">
+        Application en mode hors ligne
     </div>
     
     <div class="popup" id="popup">
@@ -211,14 +366,54 @@
             const popupTitle = document.getElementById('popup-title');
             const popupMessage = document.getElementById('popup-message');
             const popupCloseBtn = document.getElementById('popup-close-btn');
+            const themeSwitch = document.getElementById('theme-switch');
+            const offlineNotice = document.getElementById('offline-notice');
             
             // Time picker elements
             const hourSelect = document.getElementById('hour-select');
             const minuteSelect = document.getElementById('minute-select');
             
+            // Sound elements
+            const soundTestButtons = document.querySelectorAll('.sound-test-btn');
+            const soundOptions = document.querySelectorAll('input[name="notification-sound"]');
+            
+            // Audio elements for notification sounds
+            const sounds = {
+                bell: new Audio('https://cdn.pixabay.com/download/audio/2021/08/04/audio_c518b68e5d.mp3?filename=notification-sound-7062.mp3'),
+                chime: new Audio('https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c2b4d95a.mp3?filename=phone-ringing-153844.mp3'),
+                alert: new Audio('https://cdn.pixabay.com/download/audio/2022/11/17/audio_78bb4011fa.mp3?filename=interface-124464.mp3')
+            };
+            
+            // Preload sounds
+            Object.values(sounds).forEach(sound => {
+                sound.load();
+                sound.volume = 0.5;
+            });
+            
             // Variables to store times
             let endTime = null;
             let notificationTime = null;
+            
+            // Initialize theme
+            function initTheme() {
+                const savedTheme = localStorage.getItem('theme') || 'light';
+                document.documentElement.setAttribute('data-theme', savedTheme);
+                updateThemeIcon(savedTheme);
+            }
+            
+            // Update theme icon
+            function updateThemeIcon(theme) {
+                themeSwitch.textContent = theme === 'dark' ? '🌙' : '☀️';
+            }
+            
+            // Toggle theme
+            themeSwitch.addEventListener('click', function() {
+                const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+                const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+                document.documentElement.setAttribute('data-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+                updateThemeIcon(newTheme);
+            });
             
             // Initialize time select options
             function initializeTimeSelects() {
@@ -254,12 +449,35 @@
                 timeInput.value = `${hour}:${minute}`;
             }
             
-            // Event listeners for select changes
-            hourSelect.addEventListener('change', updateTimeInput);
-            minuteSelect.addEventListener('change', updateTimeInput);
+            // Test sound
+            soundTestButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const sound = this.getAttribute('data-sound');
+                    if (sounds[sound]) {
+                        sounds[sound].currentTime = 0;
+                        sounds[sound].play();
+                    }
+                });
+            });
             
-            // Initialize select options
-            initializeTimeSelects();
+            // Get selected sound
+            function getSelectedSound() {
+                const selectedSound = document.querySelector('input[name="notification-sound"]:checked').value;
+                return selectedSound !== 'none' ? selectedSound : null;
+            }
+            
+            // Save sound preference
+            soundOptions.forEach(option => {
+                option.addEventListener('change', function() {
+                    localStorage.setItem('notificationSound', this.value);
+                });
+            });
+            
+            // Load sound preference
+            function loadSoundPreference() {
+                const savedSound = localStorage.getItem('notificationSound') || 'bell';
+                document.getElementById(`sound-${savedSound}`).checked = true;
+            }
             
             // Update current time
             function updateCurrentTime() {
@@ -269,7 +487,7 @@
                 currentTimeElement.textContent = `Heure actuelle: ${hours}:${minutes}`;
             }
             
-            // Update current time every second
+            // Update current time every minute
             updateCurrentTime();
             setInterval(updateCurrentTime, 60000);
             
@@ -324,6 +542,12 @@
                         if (permission === "granted") {
                             // Schedule notification
                             setTimeout(function() {
+                                // Play sound if selected
+                                const selectedSound = getSelectedSound();
+                                if (selectedSound && sounds[selectedSound]) {
+                                    sounds[selectedSound].play();
+                                }
+                                
                                 const notification = new Notification('Fin de pause imminente', {
                                     body: 'Votre pause se termine dans 7 minutes',
                                     icon: 'https://cdn-icons-png.flaticon.com/512/3589/3589024.png'
@@ -381,12 +605,71 @@
                     // Show popup
                     showPopup('Calcul effectué', 
                              `Début de pause: ${startTimeFormatted}\nFin de pause: ${endTimeFormatted}`);
+                    
+                    // Save to localStorage for offline use
+                    saveCalculationToLocalStorage({
+                        startTime: startTimeFormatted,
+                        endTime: endTimeFormatted,
+                        notificationTime: notificationTimeFormatted
+                    });
                 } catch (e) {
                     showPopup('Erreur', `Une erreur est survenue: ${e.message}`);
                 }
             });
             
-            // Le code pour le bouton de notification a été retiré car les notifications sont maintenant automatiques
+            // Save calculation to localStorage
+            function saveCalculationToLocalStorage(data) {
+                localStorage.setItem('lastCalculation', JSON.stringify(data));
+            }
+            
+            // Load calculation from localStorage
+            function loadCalculationFromLocalStorage() {
+                const savedData = localStorage.getItem('lastCalculation');
+                if (savedData) {
+                    try {
+                        const data = JSON.parse(savedData);
+                        resultLabel.textContent = `La fin de votre pause sera à: ${data.endTime}`;
+                        notificationLabel.textContent = `Notification 7 min avant: ${data.notificationTime}`;
+                    } catch (e) {
+                        console.error('Error loading saved calculation:', e);
+                    }
+                }
+            }
+            
+            // Check online status
+            function checkOnlineStatus() {
+                if (navigator.onLine) {
+                    offlineNotice.style.display = 'none';
+                } else {
+                    offlineNotice.style.display = 'block';
+                }
+            }
+            
+            // Event listeners for the select changes
+            hourSelect.addEventListener('change', updateTimeInput);
+            minuteSelect.addEventListener('change', updateTimeInput);
+            
+            // Online/offline event listeners
+            window.addEventListener('online', checkOnlineStatus);
+            window.addEventListener('offline', checkOnlineStatus);
+            
+            // Initialize
+            initializeTimeSelects();
+            initTheme();
+            loadSoundPreference();
+            checkOnlineStatus();
+            loadCalculationFromLocalStorage();
+            
+            // Service Worker for offline functionality
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('sw.js')
+                .then(function(registration) {
+                    console.log('Service Worker registered with scope:', registration.scope);
+                })
+                .catch(function(error) {
+                    console.log('Service Worker registration failed:', error);
+                });
+            }
         });
     </script>
 </body>

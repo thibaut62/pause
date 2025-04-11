@@ -1,0 +1,10 @@
+{
+    "name": "Calculateur de Fin de Pause",
+    "short_name": "Pause Timer",
+    "description": "Application pour calculer la fin d'une pause de 40 minutes",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#4CAF50"
+    
+  }
